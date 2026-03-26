@@ -2,6 +2,7 @@
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
 	"strconv"
@@ -20,6 +21,7 @@ type CreateTodoRequest struct {
 }
 
 var (
+	port   = flag.String("port", "8080", "server port")
 	todos  = make(map[string]Todo)
 	nextID int
 )
@@ -147,6 +149,7 @@ func todoByIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	flag.Parse()
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", homeHandler)
