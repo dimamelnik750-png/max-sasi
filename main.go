@@ -6,10 +6,11 @@ import (
 	"net/http"
 )
 
-var port = flag.String("port", "8080", "server port")
+var port = flag.String("port", "", "server port")
 
 func main() {
 	flag.Parse()
+	cfg := LoadConfig()
 
 	repo := NewInMemoryTodoRepository()
 	service := NewTodoService(repo)
@@ -21,7 +22,15 @@ func main() {
 	mux.HandleFunc("/todos", handler.Todos)
 	mux.HandleFunc("/todos/", handler.TodoByID)
 
-	addr := ":" + *port
+	listenPort := cfg.Port
+	if *port != "" {
+		listenPort = *port
+	}
+	if listenPort == "" {
+		listenPort = "8080"
+	}
+
+	addr := ":" + listenPort
 
 	log.Printf("server started on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))

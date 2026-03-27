@@ -1,16 +1,16 @@
 # TODO list of writing own TODO API
 
 ## Project setup
-- [ ] Upload code to GitHub
-- [ ] Add `.gitignore`
+- [x] Upload code to GitHub
+- [x] Add `.gitignore`
 - [ ] Add README with how to run the project
-- [ ] Create flags for app  
+- [x] Create flags for app  
       https://gobyexample.com/command-line-flags
 - [ ] Use config library  
       https://github.com/spf13/viper
 
 ## Architecture
-- [ ] Make layers for application:
+- [x] Make layers for application:
   - [ ] Database (repository)
   - [ ] Transport (HTTP)
   - [ ] Service (domain / business logic)
