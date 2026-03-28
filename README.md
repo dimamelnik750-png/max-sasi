@@ -1,23 +1,23 @@
 # TODO list of writing own TODO API
 
 ## Project setup
-- [ ] Upload code to GitHub
-- [ ] Add `.gitignore`
-- [ ] Add README with how to run the project
-- [ ] Create flags for app  
+- [x] Upload code to GitHub
+- [x] Add `.gitignore`
+- [x] Add README with how to run the project
+- [x] Create flags for app  
       https://gobyexample.com/command-line-flags
-- [ ] Use config library  
+- [x] Use config library  
       https://github.com/spf13/viper
 
 ## Architecture
-- [ ] Make layers for application:
-  - [ ] Database (repository)
-  - [ ] Transport (HTTP)
-  - [ ] Service (domain / business logic)
-- [ ] Use interfaces for the database layer to decouple dependencies
+- [x] Make layers for application:
+  - [x] Database (repository)
+  - [x] Transport (HTTP)
+  - [x] Service (domain / business logic)
+- [x] Use interfaces for the database layer to decouple dependencies
 
 ## Data and database
-- [ ] Use UUID for keys  
+- [x] Use UUID for keys  
       https://github.com/google/uuid
 - [ ] Connect PostgreSQL using:
   - [ ] Standard library: `database/sql`
