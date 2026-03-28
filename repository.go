@@ -2,8 +2,9 @@ package main
 
 import (
 	"errors"
-	"strconv"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 var ErrTodoNotFound = errors.New("todo not found")
@@ -18,9 +19,8 @@ type TodoRepository interface {
 }
 
 type InMemoryTodoRepository struct {
-	mu     sync.RWMutex
-	todos  map[string]Todo
-	nextID int
+	mu    sync.RWMutex
+	todos map[string]Todo
 }
 
 func NewInMemoryTodoRepository() *InMemoryTodoRepository {
@@ -86,9 +86,5 @@ func (r *InMemoryTodoRepository) Delete(id string) error {
 }
 
 func (r *InMemoryTodoRepository) NextID() string {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.nextID++
-	return strconv.Itoa(r.nextID)
+	return uuid.NewString()
 }
