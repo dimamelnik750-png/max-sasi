@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"flag"
@@ -31,6 +31,12 @@ func main() {
 	}
 
 	addr := ":" + listenPort
+
+	db, dbErr := NewDB(cfg)
+	if dbErr != nil {
+		log.Fatal(dbErr)
+	}
+	defer db.Close()
 
 	log.Printf("server started on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))

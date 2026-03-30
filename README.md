@@ -9,6 +9,9 @@
 - [x] Use config library  
       https://github.com/spf13/viper
 
+## Configuration
+Create a `.env` file in the project root based on `.env.example`.
+
 ## Architecture
 - [x] Make layers for application:
   - [x] Database (repository)
