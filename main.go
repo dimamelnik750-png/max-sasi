@@ -6,21 +6,12 @@ import (
 	"net/http"
 )
 
-var port = flag.String("port", "", "server port")
-
 func main() {
+	port := flag.String("port", "", "server port")
 	flag.Parse()
 	cfg := LoadConfig()
 
-	repo := NewInMemoryTodoRepository()
-	service := NewTodoService(repo)
-	handler := NewHandler(service)
-
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", handler.Home)
-	mux.HandleFunc("/health", handler.Health)
-	mux.HandleFunc("/todos", handler.Todos)
-	mux.HandleFunc("/todos/", handler.TodoByID)
 
 	listenPort := cfg.Port
 	if *port != "" {
@@ -37,6 +28,19 @@ func main() {
 		log.Fatal(dbErr)
 	}
 	defer db.Close()
+
+	if err := InitDB(db); err != nil {
+		log.Fatal(err)
+	}
+
+	repo := NewPostgresTodoRepository(db)
+	service := NewTodoService(repo)
+	handler := NewHandler(service)
+
+	mux.HandleFunc("/", handler.Home)
+	mux.HandleFunc("/health", handler.Health)
+	mux.HandleFunc("/todos", handler.Todos)
+	mux.HandleFunc("/todos/", handler.TodoByID)
 
 	log.Printf("server started on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))

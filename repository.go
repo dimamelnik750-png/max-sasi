@@ -10,9 +10,9 @@ import (
 var ErrTodoNotFound = errors.New("todo not found")
 
 type TodoRepository interface {
-	GetAll() []Todo
+	GetAll() ([]Todo, error)
 	GetByID(id string) (Todo, error)
-	Create(todo Todo) Todo
+	Create(todo Todo) (Todo, error)
 	Update(todo Todo) (Todo, error)
 	Delete(id string) error
 	NextID() string
@@ -29,7 +29,7 @@ func NewInMemoryTodoRepository() *InMemoryTodoRepository {
 	}
 }
 
-func (r *InMemoryTodoRepository) GetAll() []Todo {
+func (r *InMemoryTodoRepository) GetAll() ([]Todo, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -38,7 +38,7 @@ func (r *InMemoryTodoRepository) GetAll() []Todo {
 		list = append(list, todo)
 	}
 
-	return list
+	return list, nil
 }
 
 func (r *InMemoryTodoRepository) GetByID(id string) (Todo, error) {
@@ -53,12 +53,12 @@ func (r *InMemoryTodoRepository) GetByID(id string) (Todo, error) {
 	return todo, nil
 }
 
-func (r *InMemoryTodoRepository) Create(todo Todo) Todo {
+func (r *InMemoryTodoRepository) Create(todo Todo) (Todo, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	r.todos[todo.ID] = todo
-	return todo
+	return todo, nil
 }
 
 func (r *InMemoryTodoRepository) Update(todo Todo) (Todo, error) {

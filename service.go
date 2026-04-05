@@ -25,7 +25,7 @@ type UpdateTodoInput struct {
 }
 
 type TodoService interface {
-	GetAllTodos() []Todo
+	GetAllTodos() ([]Todo, error)
 	GetTodoByID(id string) (Todo, error)
 	CreateTodo(input CreateTodoInput) (Todo, error)
 	UpdateTodo(id string, input UpdateTodoInput) (Todo, error)
@@ -40,7 +40,7 @@ func NewTodoService(repo TodoRepository) TodoService {
 	return &todoService{repo: repo}
 }
 
-func (s *todoService) GetAllTodos() []Todo {
+func (s *todoService) GetAllTodos() ([]Todo, error) {
 	return s.repo.GetAll()
 }
 
@@ -61,7 +61,7 @@ func (s *todoService) CreateTodo(input CreateTodoInput) (Todo, error) {
 		CreatedAt: time.Now(),
 	}
 
-	return s.repo.Create(todo), nil
+	return s.repo.Create(todo)
 }
 
 func (s *todoService) UpdateTodo(id string, input UpdateTodoInput) (Todo, error) {

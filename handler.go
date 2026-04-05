@@ -43,7 +43,13 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Todos(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		writeJSON(w, http.StatusOK, h.todoService.GetAllTodos())
+		todos, err := h.todoService.GetAllTodos()
+		if err != nil {
+			h.handleServiceError(w, err)
+			return
+		}
+
+		writeJSON(w, http.StatusOK, todos)
 	case http.MethodPost:
 		var input CreateTodoInput
 

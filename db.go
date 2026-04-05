@@ -28,3 +28,10 @@ func NewDB(cfg Config) (*sql.DB, error) {
 
 	return db, nil
 }
+
+func InitDB(db *sql.DB) error {
+	_, err := db.Exec(`
+	`)
+
+	return err
+}
