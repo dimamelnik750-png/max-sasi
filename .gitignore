@@ -4,6 +4,8 @@
 *.dll
 *.so
 *.dylib
+bin/
+maxsasi
 
 # Go build files
 *.test

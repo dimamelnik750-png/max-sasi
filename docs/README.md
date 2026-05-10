@@ -18,16 +18,17 @@ Create a `.env` file in the project root based on `.env.example`.
   - [x] Transport (HTTP)
   - [x] Service (domain / business logic)
 - [x] Use interfaces for the database layer to decouple dependencies
+- [] Use meaningful errors and format properly
 
 ## Data and database
 - [x] Use UUID for keys  
       https://github.com/google/uuid
-- [ ] Connect PostgreSQL using:
-  - [ ] Standard library: `database/sql`
-  - [ ] Driver: `lib/pq`  
+- [x] Connect PostgreSQL using:
+  - [x] Standard library: `database/sql`
+  - [x] Driver: `lib/pq`  
         https://github.com/lib/pq
-- [ ] Create table for TODO items
-- [ ] Add basic database migrations
+- [x] Create table for TODO items
+- [x] Add basic database migrations
 
 ## API
 - [ ] Create CRUD endpoints for TODO items
