@@ -1,10 +1,11 @@
-package main
+package repository
 
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
-	"github.com/google/uuid"
+	"maxsasi/internal/todo"
 )
 
 type PostgresTodoRepository struct {
@@ -15,7 +16,7 @@ func NewPostgresTodoRepository(db *sql.DB) *PostgresTodoRepository {
 	return &PostgresTodoRepository{db: db}
 }
 
-func (r *PostgresTodoRepository) GetAll() ([]Todo, error) {
+func (r *PostgresTodoRepository) GetAll() ([]todo.Todo, error) {
 	rows, err := r.db.Query(`
 		SELECT id, title, completed, created_at
 		FROM todos
@@ -26,74 +27,74 @@ func (r *PostgresTodoRepository) GetAll() ([]Todo, error) {
 	}
 	defer rows.Close()
 
-	todos := make([]Todo, 0)
+	items := make([]todo.Todo, 0)
 	for rows.Next() {
-		var todo Todo
-		if err := rows.Scan(&todo.ID, &todo.Title, &todo.Completed, &todo.CreatedAt); err != nil {
+		var item todo.Todo
+		if err := rows.Scan(&item.ID, &item.Title, &item.Completed, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 
-		todos = append(todos, todo)
+		items = append(items, item)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return todos, nil
+	return items, nil
 }
 
-func (r *PostgresTodoRepository) GetByID(id string) (Todo, error) {
-	var todo Todo
+func (r *PostgresTodoRepository) GetByID(id string) (todo.Todo, error) {
+	var item todo.Todo
 
 	err := r.db.QueryRow(`
 		SELECT id, title, completed, created_at
 		FROM todos
 		WHERE id = $1
-	`, id).Scan(&todo.ID, &todo.Title, &todo.Completed, &todo.CreatedAt)
+	`, id).Scan(&item.ID, &item.Title, &item.Completed, &item.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Todo{}, ErrTodoNotFound
+			return todo.Todo{}, ErrTodoNotFound
 		}
 
-		return Todo{}, err
+		return todo.Todo{}, err
 	}
 
-	return todo, nil
+	return item, nil
 }
 
-func (r *PostgresTodoRepository) Create(todo Todo) (Todo, error) {
-	created := todo
+func (r *PostgresTodoRepository) Create(item todo.Todo) (todo.Todo, error) {
+	created := item
 
 	err := r.db.QueryRow(`
 		INSERT INTO todos (id, title, completed, created_at)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, title, completed, created_at
-	`, todo.ID, todo.Title, todo.Completed, todo.CreatedAt).
+	`, item.ID, item.Title, item.Completed, item.CreatedAt).
 		Scan(&created.ID, &created.Title, &created.Completed, &created.CreatedAt)
 	if err != nil {
-		return Todo{}, err
+		return todo.Todo{}, fmt.Errorf("create todo: %w", err)
 	}
 
 	return created, nil
 }
 
-func (r *PostgresTodoRepository) Update(todo Todo) (Todo, error) {
-	updated := todo
+func (r *PostgresTodoRepository) Update(item todo.Todo) (todo.Todo, error) {
+	updated := item
 
 	err := r.db.QueryRow(`
 		UPDATE todos
 		SET title = $2, completed = $3
 		WHERE id = $1
 		RETURNING id, title, completed, created_at
-	`, todo.ID, todo.Title, todo.Completed).
+	`, item.ID, item.Title, item.Completed).
 		Scan(&updated.ID, &updated.Title, &updated.Completed, &updated.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Todo{}, ErrTodoNotFound
+			return todo.Todo{}, ErrTodoNotFound
 		}
 
-		return Todo{}, err
+		return todo.Todo{}, fmt.Errorf("update todo: %w", err)
 	}
 
 	return updated, nil
@@ -118,8 +119,4 @@ func (r *PostgresTodoRepository) Delete(id string) error {
 	}
 
 	return nil
-}
-
-func (r *PostgresTodoRepository) NextID() string {
-	return uuid.NewString()
 }

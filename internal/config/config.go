@@ -1,7 +1,9 @@
-package main
+package config
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -16,8 +18,8 @@ type Config struct {
 	DBName     string `mapstructure:"db_name"`
 }
 
-func LoadConfig() Config {
-	viper.SetConfigFile(".env")
+func Load() Config {
+	viper.SetConfigFile(findEnvFile())
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 
@@ -34,4 +36,27 @@ func LoadConfig() Config {
 		DBPassword: viper.GetString("DB_PASSWORD"),
 		DBName:     viper.GetString("DB_NAME"),
 	}
+}
+
+func findEnvFile() string {
+	candidates := []string{
+		".env",
+		filepath.Join("..", ".env"),
+	}
+
+	wd, err := os.Getwd()
+	if err == nil {
+		candidates = append(candidates,
+			filepath.Join(wd, ".env"),
+			filepath.Join(wd, "..", ".env"),
+		)
+	}
+
+	for _, candidate := range candidates {
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+	}
+
+	return ".env"
 }
