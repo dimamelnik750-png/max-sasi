@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 
@@ -119,6 +120,8 @@ func (h *Handler) TodoByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleServiceError(w http.ResponseWriter, err error) {
+	log.Printf("service error: %v", err)
+
 	switch {
 	case errors.Is(err, repository.ErrTodoNotFound):
 		httpjson.WriteError(w, http.StatusNotFound, err.Error())
