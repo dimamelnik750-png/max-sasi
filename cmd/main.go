@@ -10,6 +10,7 @@ import (
 	"maxsasi/internal/handler"
 	"maxsasi/internal/repository"
 	"maxsasi/internal/service"
+	"maxsasi/pkg/middleware"
 )
 
 func main() {
@@ -48,6 +49,14 @@ func main() {
 	mux.HandleFunc("/todos", httpHandler.Todos)
 	mux.HandleFunc("/todos/", httpHandler.TodoByID)
 
+	rootHandler := middleware.CORS(
+		middleware.Recovery(
+			middleware.Auth(cfg.AuthToken)(
+				middleware.Gzip(mux),
+			),
+		),
+	)
+
 	log.Printf("server started on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	log.Fatal(http.ListenAndServe(addr, rootHandler))
 }

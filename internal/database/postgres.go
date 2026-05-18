@@ -43,7 +43,7 @@ func RunMigrations(db *sql.DB) error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://db/migrations",
+		"file://internal/repository/migrations",
 		"postgres",
 		driver,
 	)

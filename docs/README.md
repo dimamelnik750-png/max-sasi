@@ -31,7 +31,7 @@ Create a `.env` file in the project root based on `.env.example`.
 - [x] Add basic database migrations
 
 ## API
-- [ ] Create CRUD endpoints for TODO items
+- [X] Create CRUD endpoints for TODO items
 - [ ] Add request validation
 - [ ] Return proper HTTP status codes
 - [ ] Handle errors in a consistent way
