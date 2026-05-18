@@ -41,19 +41,25 @@ func main() {
 	}
 
 	repo := repository.NewPostgresTodoRepository(db)
+	userRepo := repository.NewPostgresUserRepository(db)
+
 	todoService := service.NewTodoService(repo)
+	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
+
 	httpHandler := handler.New(todoService)
+	authHandler := handler.NewAuthHandler(authService)
 
 	mux.HandleFunc("/", httpHandler.Home)
 	mux.HandleFunc("/health", httpHandler.Health)
 	mux.HandleFunc("/todos", httpHandler.Todos)
 	mux.HandleFunc("/todos/", httpHandler.TodoByID)
+	mux.HandleFunc("/auth/register", authHandler.Register)
+	mux.HandleFunc("/auth/login", authHandler.Login)
+	mux.HandleFunc("/auth/refresh", authHandler.Refresh)
 
 	rootHandler := middleware.CORS(
 		middleware.Recovery(
-			middleware.Auth(cfg.AuthToken)(
-				middleware.Gzip(mux),
-			),
+			middleware.Gzip(mux),
 		),
 	)
 
