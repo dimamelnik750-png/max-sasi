@@ -17,6 +17,8 @@ type Config struct {
 	DBUser     string `mapstructure:"db_user"`
 	DBPassword string `mapstructure:"db_password"`
 	DBName     string `mapstructure:"db_name"`
+	RedisHost  string `mapstructure:"redis_host"`
+	RedisPort  int    `mapstructure:"redis_port"`
 }
 
 func Load() Config {
@@ -37,6 +39,8 @@ func Load() Config {
 		DBUser:     viper.GetString("DB_USER"),
 		DBPassword: viper.GetString("DB_PASSWORD"),
 		DBName:     viper.GetString("DB_NAME"),
+		RedisHost:  viper.GetString("REDIS_HOST"),
+		RedisPort:  viper.GetInt("REDIS_PORT"),
 	}
 }
 

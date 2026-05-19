@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
+	"maxsasi/internal/cache"
 	"maxsasi/internal/config"
 	"maxsasi/internal/database"
 	"maxsasi/internal/handler"
 	"maxsasi/internal/repository"
 	"maxsasi/internal/service"
-	"maxsasi/pkg/middleware"
 )
 
 func main() {
@@ -42,11 +42,13 @@ func main() {
 
 	repo := repository.NewPostgresTodoRepository(db)
 	userRepo := repository.NewPostgresUserRepository(db)
+	redisCache := cache.NewRedisCache(cfg.RedisHost, cfg.RedisPort)
 
 	todoService := service.NewTodoService(repo)
+	cachedTodoService := service.NewCachedTodoService(todoService, redisCache)
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 
-	httpHandler := handler.New(todoService)
+	httpHandler := handler.New(cachedTodoService)
 	authHandler := handler.NewAuthHandler(authService)
 
 	mux.HandleFunc("/", httpHandler.Home)
@@ -57,9 +59,9 @@ func main() {
 	mux.HandleFunc("/auth/login", authHandler.Login)
 	mux.HandleFunc("/auth/refresh", authHandler.Refresh)
 
-	rootHandler := middleware.CORS(
-		middleware.Recovery(
-			middleware.Gzip(mux),
+	rootHandler := handler.CORS(
+		handler.Recovery(
+			handler.Gzip(mux),
 		),
 	)
 
