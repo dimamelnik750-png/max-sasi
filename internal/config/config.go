@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Port       string
 	Env        string
-	AuthToken  string `mapstructure:"auth_token"`
+	JWTSecret  string `mapstructure:"jwt_secret"`
 	DBHost     string `mapstructure:"db_host"`
 	DBPort     int    `mapstructure:"db_port"`
 	DBUser     string `mapstructure:"db_user"`
@@ -31,7 +31,7 @@ func Load() Config {
 	return Config{
 		Port:       viper.GetString("PORT"),
 		Env:        viper.GetString("ENV"),
-		AuthToken:  viper.GetString("AUTH_TOKEN"),
+		JWTSecret:  viper.GetString("JWT_SECRET"),
 		DBHost:     viper.GetString("DB_HOST"),
 		DBPort:     viper.GetInt("DB_PORT"),
 		DBUser:     viper.GetString("DB_USER"),
