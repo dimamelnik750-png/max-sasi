@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
+	"maxsasi/internal/cache"
 	"maxsasi/internal/config"
 	"maxsasi/internal/database"
 	"maxsasi/internal/handler"
 	"maxsasi/internal/repository"
 	"maxsasi/internal/service"
-	"maxsasi/pkg/middleware"
 )
 
 func main() {
@@ -18,7 +18,6 @@ func main() {
 	flag.Parse()
 
 	cfg := config.Load()
-	mux := http.NewServeMux()
 
 	listenPort := cfg.Port
 	if *port != "" {
@@ -42,24 +41,21 @@ func main() {
 
 	repo := repository.NewPostgresTodoRepository(db)
 	userRepo := repository.NewPostgresUserRepository(db)
+	redisCache := cache.NewRedisCache(cfg.RedisHost, cfg.RedisPort)
 
 	todoService := service.NewTodoService(repo)
+	cachedTodoService := service.NewCachedTodoService(todoService, redisCache)
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 
-	httpHandler := handler.New(todoService)
+	httpHandler := handler.New(cachedTodoService)
 	authHandler := handler.NewAuthHandler(authService)
+	mux := handler.NewRouter(httpHandler, authHandler)
 
-	mux.HandleFunc("/", httpHandler.Home)
-	mux.HandleFunc("/health", httpHandler.Health)
-	mux.HandleFunc("/todos", httpHandler.Todos)
-	mux.HandleFunc("/todos/", httpHandler.TodoByID)
-	mux.HandleFunc("/auth/register", authHandler.Register)
-	mux.HandleFunc("/auth/login", authHandler.Login)
-	mux.HandleFunc("/auth/refresh", authHandler.Refresh)
-
-	rootHandler := middleware.CORS(
-		middleware.Recovery(
-			middleware.Gzip(mux),
+	rootHandler := handler.CORS(
+		handler.Recovery(
+			handler.JWTAuth(cfg.JWTSecret)(
+				handler.Gzip(mux),
+			),
 		),
 	)
 
