@@ -7,6 +7,7 @@ import (
 	"maxsasi/internal/user"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,10 +38,11 @@ func (r *PostgresUserRepository) Create(username, password string) (user.User, e
         INSERT INTO users (id, username, password_hash)
         VALUES ($1, $2, $3)
         RETURNING id, username, created_at
-    `, uuid.NewString(), username, string(hash)).
+	`, uuid.NewString(), username, string(hash)).
 		Scan(&u.ID, &u.Username, &u.CreatedAt)
 	if err != nil {
-		if err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"` {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
 			return user.User{}, ErrUserAlreadyExists
 		}
 		return user.User{}, err

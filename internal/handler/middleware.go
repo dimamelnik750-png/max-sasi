@@ -55,6 +55,12 @@ func Recovery(next http.Handler) http.Handler {
 func JWTAuth(jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/", "/health", "/auth/register", "/auth/login", "/auth/refresh":
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
 				httpjson.WriteError(w, http.StatusUnauthorized, "unauthorized")

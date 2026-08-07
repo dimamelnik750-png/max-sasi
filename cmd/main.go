@@ -18,7 +18,6 @@ func main() {
 	flag.Parse()
 
 	cfg := config.Load()
-	mux := http.NewServeMux()
 
 	listenPort := cfg.Port
 	if *port != "" {
@@ -50,18 +49,13 @@ func main() {
 
 	httpHandler := handler.New(cachedTodoService)
 	authHandler := handler.NewAuthHandler(authService)
-
-	mux.HandleFunc("/", httpHandler.Home)
-	mux.HandleFunc("/health", httpHandler.Health)
-	mux.HandleFunc("/todos", httpHandler.Todos)
-	mux.HandleFunc("/todos/", httpHandler.TodoByID)
-	mux.HandleFunc("/auth/register", authHandler.Register)
-	mux.HandleFunc("/auth/login", authHandler.Login)
-	mux.HandleFunc("/auth/refresh", authHandler.Refresh)
+	mux := handler.NewRouter(httpHandler, authHandler)
 
 	rootHandler := handler.CORS(
 		handler.Recovery(
-			handler.Gzip(mux),
+			handler.JWTAuth(cfg.JWTSecret)(
+				handler.Gzip(mux),
+			),
 		),
 	)
 
