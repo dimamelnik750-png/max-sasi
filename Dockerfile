@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o app .
+RUN go build -o app ./cmd
 
 FROM alpine:latest
 
@@ -17,6 +17,7 @@ RUN apk --no-cache add ca-certificates
 
 COPY --from=builder /app/app .
 COPY --from=builder /app/.env .
+COPY --from=builder /app/internal/repository/migrations ./internal/repository/migrations
 
 EXPOSE 8080
 
