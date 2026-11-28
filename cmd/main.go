@@ -49,10 +49,12 @@ func main() {
 	httpHandler := handler.New(todoService)
 	authHandler := handler.NewAuthHandler(authService)
 
+	auth := middleware.JWTAuth(cfg.JWTSecret)
+
 	mux.HandleFunc("/", httpHandler.Home)
 	mux.HandleFunc("/health", httpHandler.Health)
-	mux.HandleFunc("/todos", httpHandler.Todos)
-	mux.HandleFunc("/todos/", httpHandler.TodoByID)
+	mux.Handle("/todos", auth(http.HandlerFunc(httpHandler.Todos)))
+	mux.Handle("/todos/", auth(http.HandlerFunc(httpHandler.TodoByID)))
 	mux.HandleFunc("/auth/register", authHandler.Register)
 	mux.HandleFunc("/auth/login", authHandler.Login)
 	mux.HandleFunc("/auth/refresh", authHandler.Refresh)

@@ -11,6 +11,7 @@ import (
 	"maxsasi/internal/service"
 	"maxsasi/internal/todo"
 	"maxsasi/pkg/httpjson"
+	"maxsasi/pkg/middleware"
 )
 
 type Handler struct {
@@ -47,9 +48,14 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Todos(w http.ResponseWriter, r *http.Request) {
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok {
+		httpjson.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
 	switch r.Method {
 	case http.MethodGet:
-		items, err := h.todoService.GetAllTodos()
+		items, err := h.todoService.GetAllTodos(claims.UserID)
 		if err != nil {
 			h.handleServiceError(w, err)
 			return
@@ -64,7 +70,7 @@ func (h *Handler) Todos(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		item, err := h.todoService.CreateTodo(input)
+		item, err := h.todoService.CreateTodo(claims.UserID, input)
 		if err != nil {
 			h.handleServiceError(w, err)
 			return
@@ -82,10 +88,15 @@ func (h *Handler) TodoByID(w http.ResponseWriter, r *http.Request) {
 		httpjson.WriteError(w, http.StatusNotFound, "todo not found")
 		return
 	}
+	claims, ok := middleware.ClaimsFromContext(r.Context())
+	if !ok {
+		httpjson.WriteError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
 
 	switch r.Method {
 	case http.MethodGet:
-		item, err := h.todoService.GetTodoByID(id)
+		item, err := h.todoService.GetTodoByID(id, claims.UserID)
 		if err != nil {
 			h.handleServiceError(w, err)
 			return
@@ -100,7 +111,7 @@ func (h *Handler) TodoByID(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		item, err := h.todoService.UpdateTodo(id, input)
+		item, err := h.todoService.UpdateTodo(id, claims.UserID, input)
 		if err != nil {
 			h.handleServiceError(w, err)
 			return
@@ -108,7 +119,7 @@ func (h *Handler) TodoByID(w http.ResponseWriter, r *http.Request) {
 
 		httpjson.WriteJSON(w, http.StatusOK, item)
 	case http.MethodDelete:
-		if err := h.todoService.DeleteTodo(id); err != nil {
+		if err := h.todoService.DeleteTodo(id, claims.UserID); err != nil {
 			h.handleServiceError(w, err)
 			return
 		}

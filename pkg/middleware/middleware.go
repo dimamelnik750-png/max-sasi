@@ -15,6 +15,15 @@ import (
 
 type Middleware func(http.Handler) http.Handler
 
+type contextKey string
+
+const claimsKey contextKey = "claims"
+
+func ClaimsFromContext(ctx context.Context) (*auth.Claims, bool) {
+	claims, ok := ctx.Value(claimsKey).(*auth.Claims)
+	return claims, ok
+}
+
 type gzipResponseWriter struct {
 	http.ResponseWriter
 	writer io.Writer
@@ -73,7 +82,7 @@ func JWTAuth(jwtSecret string) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "claims", claims)
+			ctx := context.WithValue(r.Context(), claimsKey, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
