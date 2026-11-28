@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"path/filepath"
+	"runtime"
 
 	"maxsasi/internal/config"
 
@@ -42,8 +44,14 @@ func RunMigrations(db *sql.DB) error {
 		return fmt.Errorf("migration driver error: %w", err)
 	}
 
+	_, sourceFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("could not resolve migrations path")
+	}
+	migrationsPath := filepath.Join(filepath.Dir(sourceFile), "..", "repository", "migrations")
+
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://internal/repository/migrations",
+		"file://"+filepath.ToSlash(migrationsPath),
 		"postgres",
 		driver,
 	)
