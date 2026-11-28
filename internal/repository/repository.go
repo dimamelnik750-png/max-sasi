@@ -10,11 +10,11 @@ import (
 var ErrTodoNotFound = errors.New("todo not found")
 
 type TodoRepository interface {
-	GetAll() ([]todo.Todo, error)
-	GetByID(id string) (todo.Todo, error)
+	GetAll(userID string) ([]todo.Todo, error)
+	GetByID(id, userID string) (todo.Todo, error)
 	Create(item todo.Todo) (todo.Todo, error)
 	Update(item todo.Todo) (todo.Todo, error)
-	Delete(id string) error
+	Delete(id, userID string) error
 }
 
 type InMemoryTodoRepository struct {

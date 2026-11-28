@@ -16,12 +16,13 @@ func NewPostgresTodoRepository(db *sql.DB) *PostgresTodoRepository {
 	return &PostgresTodoRepository{db: db}
 }
 
-func (r *PostgresTodoRepository) GetAll() ([]todo.Todo, error) {
+func (r *PostgresTodoRepository) GetAll(userID string) ([]todo.Todo, error) {
 	rows, err := r.db.Query(`
-		SELECT id, title, completed, created_at
+		SELECT id, user_id, title, completed, created_at
 		FROM todos
+		WHERE user_id = $1
 		ORDER BY created_at DESC
-	`)
+	`, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (r *PostgresTodoRepository) GetAll() ([]todo.Todo, error) {
 	items := make([]todo.Todo, 0)
 	for rows.Next() {
 		var item todo.Todo
-		if err := rows.Scan(&item.ID, &item.Title, &item.Completed, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.ID, &item.UserID, &item.Title, &item.Completed, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 
@@ -44,14 +45,14 @@ func (r *PostgresTodoRepository) GetAll() ([]todo.Todo, error) {
 	return items, nil
 }
 
-func (r *PostgresTodoRepository) GetByID(id string) (todo.Todo, error) {
+func (r *PostgresTodoRepository) GetByID(id, userID string) (todo.Todo, error) {
 	var item todo.Todo
 
 	err := r.db.QueryRow(`
-		SELECT id, title, completed, created_at
+		SELECT id, user_id, title, completed, created_at
 		FROM todos
-		WHERE id = $1
-	`, id).Scan(&item.ID, &item.Title, &item.Completed, &item.CreatedAt)
+		WHERE id = $1 AND user_id = $2
+	`, id, userID).Scan(&item.ID, &item.UserID, &item.Title, &item.Completed, &item.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return todo.Todo{}, ErrTodoNotFound
@@ -67,11 +68,11 @@ func (r *PostgresTodoRepository) Create(item todo.Todo) (todo.Todo, error) {
 	created := item
 
 	err := r.db.QueryRow(`
-		INSERT INTO todos (id, title, completed, created_at)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, title, completed, created_at
-	`, item.ID, item.Title, item.Completed, item.CreatedAt).
-		Scan(&created.ID, &created.Title, &created.Completed, &created.CreatedAt)
+		INSERT INTO todos (id, user_id, title, completed, created_at)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, user_id,title, completed, created_at
+	`, item.ID, item.UserID, item.Title, item.Completed, item.CreatedAt).
+		Scan(&created.ID, &created.UserID, &created.Title, &created.Completed, &created.CreatedAt)
 	if err != nil {
 		return todo.Todo{}, fmt.Errorf("create todo: %w", err)
 	}
@@ -85,10 +86,10 @@ func (r *PostgresTodoRepository) Update(item todo.Todo) (todo.Todo, error) {
 	err := r.db.QueryRow(`
 		UPDATE todos
 		SET title = $2, completed = $3
-		WHERE id = $1
-		RETURNING id, title, completed, created_at
-	`, item.ID, item.Title, item.Completed).
-		Scan(&updated.ID, &updated.Title, &updated.Completed, &updated.CreatedAt)
+		WHERE id = $1 AND user_id = $4
+		RETURNING id, user_id, title, completed, created_at
+	`, item.ID, item.Title, item.Completed, item.UserID).
+		Scan(&updated.ID, &updated.UserID, &updated.Title, &updated.Completed, &updated.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return todo.Todo{}, ErrTodoNotFound
@@ -100,11 +101,11 @@ func (r *PostgresTodoRepository) Update(item todo.Todo) (todo.Todo, error) {
 	return updated, nil
 }
 
-func (r *PostgresTodoRepository) Delete(id string) error {
+func (r *PostgresTodoRepository) Delete(id, userID string) error {
 	result, err := r.db.Exec(`
 		DELETE FROM todos
-		WHERE id = $1
-	`, id)
+		WHERE id = $1 AND user_id = $2
+	`, id, userID)
 	if err != nil {
 		return err
 	}
